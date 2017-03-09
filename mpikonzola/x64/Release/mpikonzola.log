@@ -1,0 +1,10 @@
+﻿  mpikonzola2.cpp
+mpikonzola2.cpp(87): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+mpikonzola2.cpp(77): warning C4101: 'tp': unreferenced local variable
+  Generating code
+  1 of 11 functions ( 9.1%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  mpikonzola.vcxproj -> D:\sova\PAR\mpikonzola\x64\Release\mpikonzola.exe
+  mpikonzola.vcxproj -> D:\sova\PAR\mpikonzola\x64\Release\mpikonzola.pdb (Full PDB)
