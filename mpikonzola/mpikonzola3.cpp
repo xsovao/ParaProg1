@@ -12,10 +12,16 @@
 #include <stdlib.h>
 #define M_PI         3.141592653589793238462643383279502884
 
-double R = 3671, D = 800;
+double R = 3671, D = 800, GM = 398600;
 
 double ss(double *a,double *b) {
 	return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+}
+
+double ss(double *a, double *b, int n) {
+	double r = 0;
+	for (int i = 0; i < n; i++)r += a[i] * b[i];
+	return r;
 }
 
 double* d(double *a, double *b) {
@@ -38,6 +44,11 @@ void map(double *X[],double R, double B, double L) {
 	(*X)[2] = R * sin(dtr(B));
 }
 
+double norm(double *a,int n) {
+	double r = 0;
+	for (int i = 0; i < n; i++)r += a[i] * a[i];
+	return sqrt(r);
+}
 double *scale(double a,double *x) {
 	double d[3];
 	d[0] = a*x[0]; d[1] = a*x[1]; d[2] = a*x[2];
@@ -53,23 +64,26 @@ double *map(double R, double B, double L) {
 }*/
 
 void makeM(double **A, int n, double **X) {
-	double r[3], size, sc = (R-D)/R;
+	double r[3], size,nn[3], sc = (R-D)/R;
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < n; j++) {
 			r[0] = X[i][0] - sc*X[j][0];
 			r[1] = X[i][1] - sc*X[j][1];
 			r[2] = X[i][2] - sc*X[j][2];
+			nn[0] = X[j][0] / R;
+			nn[1] = X[j][1] / R;
+			nn[2] = X[j][2] / R;
 			size = sqrt(r[0]*r[0]+r[1]*r[1]+r[2]*r[2]);
 			//std::cout << r[0] << " " << r[1] << " " << r[2] << std::endl;
-			//std::cout << size << std::endl;
-			A[i][j] = 1.0 / (4 * M_PI * size*size*size) * ss(r, X[i]);
+			//if(i==j)std::cout << size << std::endl;
+			A[i][j] = 1.0 / (4 * M_PI * size * size * size) * ss(r, nn);
 		}
 	}
 }
 
 void printM(double **A,int n) {
 	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n; j++) {
+		for (int j = 0; j < 1; j++) {
 			std::cout << A[i][j] << " ";
 		}
 		std::cout << std::endl;
@@ -90,23 +104,41 @@ int main(int argc, char** argv) {
 	std::chrono::time_point<std::chrono::system_clock> tstart, tend;
 	std::chrono::duration<double> elapsed_seconds;
 	int n = 902;
+	int maxit = 100;
 	double **M;
 
 	double *Q1,*Q2;
 	double **X;
 
+	double *x,*xold,q,tol=1e-9;
+
+	double rh,rhold,rhoold, bet, aph, omg,nr;
+	double *r, *rold, *p, *s,*v,*t;
+
 	Q1 = new double[n];
 	Q2 = new double[n];
 	X = new double*[n];
 	M = new double*[n];
-	
+	x = new double[n];
+	xold = new double[n];
+	r = new double[n];
+	rold = new double[n];
+	p = new double[n];
+	s = new double[n];
+	v = new double[n];
+	t = new double[n];
+
+	q = GM/(R*R);
+
 	if (myrank == 0) {
 		std::ifstream file;
 		file.open("D:\\sova\\PAR\\MPI_Z1\\BL-902.dat", std::ios::in);
 		if (file.is_open()) {
 			for (int i = 0; i < n; i++) {
+
 				X[i] = new double[3];
 				M[i] = new double[n];
+				
 				file >> X[i][0] >> X[i][1] >> X[i][2] >> Q1[i] >> Q2[i];
 
 				map(&(X[i]), R, X[i][0], X[i][1]);
@@ -118,11 +150,64 @@ int main(int argc, char** argv) {
 		}
 
 		makeM(M, n, X);
-		
-		std::cout << "dun";
+		//std::cout << 1 / (4 * M_PI * D *D) << "\n";;
+		std::cout << "dun matica" << "\n";
 		//printM(M, n);
+		
+		std::cout << "____" << std::endl;
+		for (int i = 0; i < n; i++) {
+			x[i] = 0;
+			xold[i] = 0;
+			r[i] = q;
+			rold[i] = q;
+		}
+		for (int k = 0; k < maxit; k++) {
+
+			std::cout << "it " << k << std::endl;
+
+			rh = ss(r, rold, n);
+			if (rh == 0) {
+				std::cout << "fail" << std::endl;
+				break;
+			}
+			if (k == 0)
+				for (int i = 0; i < n; i++)p[i] = r[i];
+			else {
+				bet = (rh / rhold)*(aph / omg);
+				for (int i = 0; i < n; i++) {
+					p[i] = r[i] + bet*(p[i] - omg*v[i]);
+				}
+			}
+			for (int j = 0; j < n; j++) {
+				v[j] = 0;
+				for (int i = 0; i < n; i++)v[j] += M[i][j] * p[i];
+			}
+			aph = rh / ss(r, v);
+			for (int j = 0; j < n; j++)s[j] = r[j] - aph*v[j];
+			if (norm(s, n) < tol) {
+				for (int j = 0; j < n; j++)x[j] = xold[j] + aph*p[j];
+				break;
+			}
+			for (int j = 0; j < n; j++) {
+				t[j] = 0;
+				for (int i = 0; i < n; i++)t[j] += M[i][j] * s[i];
+			}
+			omg = ss(t, s, n) / ss(t, t, n);
+			for (int j = 0; j < n; j++)x[j] = xold[j] + aph*p[j] + omg*s[j];
+			for (int j = 0; j < n; j++)r[j] = s[j] - omg * t[j];
+			for (int j = 0; j < n; j++) {
+				xold[j] = x[j];
+				rold[j] = r[j];
+			}
+			rhold = rh;
+			nr = norm(r, n);
+			std::cout << "norm[r] = "<< nr << "\n";
+			if (nr < tol)break;
+		}
 
 
+
+	
 	}
 	//BROADCAST 
 	/*
@@ -153,9 +238,6 @@ int main(int argc, char** argv) {
 	if (myrank == 0)std::cout << std::endl;
 	*/
 
-
-
-
 if (myrank == 0) {
 
 	//write
@@ -172,7 +254,7 @@ if (myrank == 0) {
 	}
 	//std::cout << std::endl << std::endl;
 
-
+	
 	//serial
 	tstart = std::chrono::system_clock::now();//clockstart
 	for (int i = 0; i < n; i++) {
