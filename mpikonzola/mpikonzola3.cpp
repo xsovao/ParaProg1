@@ -19,9 +19,9 @@ double ss(double *a,double *b) {
 }
 
 double ss(double *a, double *b, int n) {
-	double r = 0;
-	for (int i = 0; i < n; i++)r += a[i] * b[i];
-	return r;
+	double rr = 0;
+	for (int i = 0; i < n; i++)rr += a[i] * b[i];
+	return rr;
 }
 
 double* d(double *a, double *b) {
@@ -110,9 +110,9 @@ int main(int argc, char** argv) {
 	double *Q1,*Q2;
 	double **X;
 
-	double *x,*xold,q,tol=1e-9;
+	double *x,q,tol=1e-9;
 
-	double rh,rhold,rhoold, bet, aph, omg,nr;
+	double rh,rhold, bet, aph, omg,nr,ss1,ss2;
 	double *r, *rold, *p, *s,*v,*t;
 
 	Q1 = new double[n];
@@ -120,7 +120,6 @@ int main(int argc, char** argv) {
 	X = new double*[n];
 	M = new double*[n];
 	x = new double[n];
-	xold = new double[n];
 	r = new double[n];
 	rold = new double[n];
 	p = new double[n];
@@ -157,15 +156,18 @@ int main(int argc, char** argv) {
 		std::cout << "____" << std::endl;
 		for (int i = 0; i < n; i++) {
 			x[i] = 0;
-			xold[i] = 0;
 			r[i] = q;
 			rold[i] = q;
 		}
 		for (int k = 0; k < maxit; k++) {
 
 			std::cout << "it " << k << std::endl;
-
-			rh = ss(r, rold, n);
+			
+			ss1 = 0;
+			for (int i = 0; i < n; i++) {
+				ss1 += rold[i] * r[i];
+			}
+			rh = ss1;
 			if (rh == 0) {
 				std::cout << "fail" << std::endl;
 				break;
@@ -178,27 +180,38 @@ int main(int argc, char** argv) {
 					p[i] = r[i] + bet*(p[i] - omg*v[i]);
 				}
 			}
-			for (int j = 0; j < n; j++) {
-				v[j] = 0;
-				for (int i = 0; i < n; i++)v[j] += M[i][j] * p[i];
+			for (int i = 0; i < n; i++) {
+				v[i] = 0;
+				for (int j = 0; j < n; j++)v[i] += M[i][j] * p[j];
 			}
-			aph = rh / ss(r, v);
-			for (int j = 0; j < n; j++)s[j] = r[j] - aph*v[j];
+
+
+			ss1 = 0;
+			for (int i = 0; i < n; i++) {
+				ss1 += rold[i] * v[i];
+			}
+			aph = rh / ss1;
+
+			for (int j = 0; j < n; j++)s[j] = r[j] - aph * v[j];
 			if (norm(s, n) < tol) {
-				for (int j = 0; j < n; j++)x[j] = xold[j] + aph*p[j];
+				for (int j = 0; j < n; j++)x[j] = x[j] + aph*p[j];
 				break;
 			}
-			for (int j = 0; j < n; j++) {
-				t[j] = 0;
-				for (int i = 0; i < n; i++)t[j] += M[i][j] * s[i];
+			for (int i = 0; i < n; i++) {
+				t[i] = 0;
+				for (int j = 0; j < n; j++)t[i] += M[i][j] * s[j];
 			}
-			omg = ss(t, s, n) / ss(t, t, n);
-			for (int j = 0; j < n; j++)x[j] = xold[j] + aph*p[j] + omg*s[j];
+
+			ss1 = 0;
+			ss2 = 0;
+			for (int i = 0; i < n; i++) { 
+				ss1 += t[i] * s[i];
+				ss2 += t[i] * t[i];
+			}
+			omg = ss1/ss2;
+			for (int j = 0; j < n; j++)x[j] = x[j] + aph*p[j] + omg * s[j];
 			for (int j = 0; j < n; j++)r[j] = s[j] - omg * t[j];
-			for (int j = 0; j < n; j++) {
-				xold[j] = x[j];
-				rold[j] = r[j];
-			}
+			
 			rhold = rh;
 			nr = norm(r, n);
 			std::cout << "norm[r] = "<< nr << "\n";
