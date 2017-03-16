@@ -8,14 +8,19 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <math.h>
 #include <stdlib.h>
-# define M_PI         3.141592653589793238462643383279502884L
+#define M_PI         3.141592653589793238462643383279502884
+
+double R = 3671, D = 800;
 
 double ss(double *a,double *b) {
 	return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
 }
 
 double* d(double *a, double *b) {
+	//std::cout << a[0] << "," << a[1] << "," << a[2] << std::endl;
+	//std::cout << b[0] << "," << b[1] << "," << b[2] << std::endl;
 	double f[3];
 	for(int i=0; i<3; i++){
 		f[i] = a[i] - b[i];}
@@ -23,11 +28,52 @@ double* d(double *a, double *b) {
 }
 
 double s(double *a) { return ss(a, a); }
-double dtr(double a) { return a / 180.0 * M_PI; }
+double dtr(double a) { return a /180.0 * M_PI; }
 
-double* n(double R, double B, double L) {
-	double x[3];
-	x[0] = std::cos(dtr(B)) * std::cos(dtr(L));
+
+void map(double *X[],double R, double B, double L) {
+	*X=new double[3];
+	(*X)[0] = R * cos(dtr(B)) * cos(dtr(L));
+	(*X)[1] = R * cos(dtr(B)) * sin(dtr(L));
+	(*X)[2] = R * sin(dtr(B));
+}
+
+double *scale(double a,double *x) {
+	double d[3];
+	d[0] = a*x[0]; d[1] = a*x[1]; d[2] = a*x[2];
+	return d;
+}
+/*
+double *map(double R, double B, double L) {
+	double X[3];
+	X[0] = R * cos(dtr(B)) * cos(dtr(L));
+	X[1] = R * cos(dtr(B)) * sin(dtr(L));
+	X[2] = R * sin(dtr(B));
+	return X;
+}*/
+
+void makeM(double **A, int n, double **X) {
+	double r[3], size, sc = (R-D)/R;
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			r[0] = X[i][0] - sc*X[j][0];
+			r[1] = X[i][1] - sc*X[j][1];
+			r[2] = X[i][2] - sc*X[j][2];
+			size = sqrt(r[0]*r[0]+r[1]*r[1]+r[2]*r[2]);
+			//std::cout << r[0] << " " << r[1] << " " << r[2] << std::endl;
+			//std::cout << size << std::endl;
+			A[i][j] = 1.0 / (4 * M_PI * size*size*size) * ss(r, X[i]);
+		}
+	}
+}
+
+void printM(double **A,int n) {
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < n; j++) {
+			std::cout << A[i][j] << " ";
+		}
+		std::cout << std::endl;
+	}
 }
 
 int main(int argc, char** argv) {
@@ -44,37 +90,40 @@ int main(int argc, char** argv) {
 	std::chrono::time_point<std::chrono::system_clock> tstart, tend;
 	std::chrono::duration<double> elapsed_seconds;
 	int n = 902;
-	float **M;
-	float **Mloc;
-	float *r;
-	char *buf;
-	double R = 3671,D=800;
+	double **M;
+
 	double *Q1,*Q2;
 	double **X;
 
 	Q1 = new double[n];
 	Q2 = new double[n];
 	X = new double*[n];
-	std::ifstream file;
-	file.open("D:\\sova\\PAR\\MPI_Z1\\BL-902.dat", std::ios::in);
-	if (file.is_open()) {
-		for (int i = 0; i < n; i++) {
-			X[i] = new double[3];
-			file >> X[i][0] >> X[i][1] >> X[i][2] >> Q1[i] >> Q2[i];
-			std::cout << X[i][0] << " " << X[i][1] << " " << X[i][2] << " " << Q1[i] << " " << Q2[i] << std::endl;
-		}
-	}
-	else {
-		std::cout << "not open";
-	}
-
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n; j++) {
+	M = new double*[n];
 	
-		
-		}
-	}
+	if (myrank == 0) {
+		std::ifstream file;
+		file.open("D:\\sova\\PAR\\MPI_Z1\\BL-902.dat", std::ios::in);
+		if (file.is_open()) {
+			for (int i = 0; i < n; i++) {
+				X[i] = new double[3];
+				M[i] = new double[n];
+				file >> X[i][0] >> X[i][1] >> X[i][2] >> Q1[i] >> Q2[i];
 
+				map(&(X[i]), R, X[i][0], X[i][1]);
+				//std::cout <<std::setprecision(6) << X[i][0] << "\t" << X[i][1] << "\t" << X[i][2] << "\t" << Q1[i] << "\t" << Q2[i] << std::endl;
+			}
+		}
+		else {
+			std::cout << "not open";
+		}
+
+		makeM(M, n, X);
+		
+		std::cout << "dun";
+		//printM(M, n);
+
+
+	}
 	//BROADCAST 
 	/*
 	int a[4];

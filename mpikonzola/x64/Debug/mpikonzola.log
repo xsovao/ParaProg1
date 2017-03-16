@@ -1,6 +1,8 @@
 ﻿  mpikonzola3.cpp
-d:\sova\par\mpikonzola\mpikonzola\mpikonzola3.cpp(66): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-d:\sova\par\mpikonzola\mpikonzola\mpikonzola3.cpp(117): warning C4101: 'nlast': unreferenced local variable
-d:\sova\par\mpikonzola\mpikonzola\mpikonzola3.cpp(52): warning C4101: 'tp': unreferenced local variable
-  mpikonzola.vcxproj -> D:\sova\PAR\mpikonzola\x64\Debug\mpikonzola.exe
-  mpikonzola.vcxproj -> D:\sova\PAR\mpikonzola\x64\Debug\mpikonzola.pdb (Full PDB)
+d:\sova\par\mpi_z1\mpikonzola\mpikonzola3.cpp(89): warning C4101: 'end': unreferenced local variable
+d:\sova\par\mpi_z1\mpikonzola\mpikonzola3.cpp(89): warning C4101: 'start': unreferenced local variable
+d:\sova\par\mpi_z1\mpikonzola\mpikonzola3.cpp(89): warning C4101: 'tp': unreferenced local variable
+d:\sova\par\mpi_z1\mpikonzola\mpikonzola3.cpp(27): warning C4172: returning address of local variable or temporary: f
+d:\sova\par\mpi_z1\mpikonzola\mpikonzola3.cpp(44): warning C4172: returning address of local variable or temporary: d
+  mpikonzola.vcxproj -> D:\sova\PAR\MPI_Z1\x64\Debug\mpikonzola.exe
+  mpikonzola.vcxproj -> D:\sova\PAR\MPI_Z1\x64\Debug\mpikonzola.pdb (Full PDB)
