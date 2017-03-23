@@ -1,8 +1,8 @@
-﻿  mpikonzola3.cpp
-d:\sova\par\mpi_z1\mpikonzola\mpikonzola3.cpp(89): warning C4101: 'end': unreferenced local variable
-d:\sova\par\mpi_z1\mpikonzola\mpikonzola3.cpp(89): warning C4101: 'start': unreferenced local variable
-d:\sova\par\mpi_z1\mpikonzola\mpikonzola3.cpp(89): warning C4101: 'tp': unreferenced local variable
-d:\sova\par\mpi_z1\mpikonzola\mpikonzola3.cpp(27): warning C4172: returning address of local variable or temporary: f
-d:\sova\par\mpi_z1\mpikonzola\mpikonzola3.cpp(44): warning C4172: returning address of local variable or temporary: d
+﻿  mpikonzola3_paralel.cpp
+d:\sova\par\mpi_z1\mpikonzola\mpikonzola3_paralel.cpp(115): warning C4101: 'tot': unreferenced local variable
+d:\sova\par\mpi_z1\mpikonzola\mpikonzola3_paralel.cpp(103): warning C4101: 'tp': unreferenced local variable
+d:\sova\par\mpi_z1\mpikonzola\mpikonzola3_paralel.cpp(105): warning C4101: 'elapsed_seconds': unreferenced local variable
+d:\sova\par\mpi_z1\mpikonzola\mpikonzola3_paralel.cpp(33): warning C4172: returning address of local variable or temporary: f
+d:\sova\par\mpi_z1\mpikonzola\mpikonzola3_paralel.cpp(55): warning C4172: returning address of local variable or temporary: d
   mpikonzola.vcxproj -> D:\sova\PAR\MPI_Z1\x64\Debug\mpikonzola.exe
   mpikonzola.vcxproj -> D:\sova\PAR\MPI_Z1\x64\Debug\mpikonzola.pdb (Full PDB)

@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
 	std::chrono::time_point<std::chrono::system_clock> tstart, tend;
 	std::chrono::duration<double> elapsed_seconds;
 	int n = 902;
-	int maxit = 100;
+	int maxit = 1000;
 	double **M;
 
 	double *Q1,*Q2;
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
 
 	double *x,q,tol=1e-9;
 
-	double rh,rhold, bet, aph, omg,nr,ss1,ss2;
+	double rh,rhold, bet, aph, omg,nr,ss1,ss2,nor;
 	double *r, *rold, *p, *s,*v,*t;
 
 	Q1 = new double[n];
@@ -162,12 +162,12 @@ int main(int argc, char** argv) {
 		for (int k = 0; k < maxit; k++) {
 
 			std::cout << "it " << k << std::endl;
-			
-			ss1 = 0;
+
+			rh = 0;
 			for (int i = 0; i < n; i++) {
-				ss1 += rold[i] * r[i];
+				rh += rold[i] * r[i];
 			}
-			rh = ss1;
+
 			if (rh == 0) {
 				std::cout << "fail" << std::endl;
 				break;
@@ -175,8 +175,9 @@ int main(int argc, char** argv) {
 			if (k == 0)
 				for (int i = 0; i < n; i++)p[i] = r[i];
 			else {
-				bet = (rh / rhold)*(aph / omg);
+				bet = (rh / rhold) * (aph / omg);
 				for (int i = 0; i < n; i++) {
+					//p[i] = r[i];
 					p[i] = r[i] + bet*(p[i] - omg*v[i]);
 				}
 			}
@@ -185,7 +186,6 @@ int main(int argc, char** argv) {
 				for (int j = 0; j < n; j++)v[i] += M[i][j] * p[j];
 			}
 
-
 			ss1 = 0;
 			for (int i = 0; i < n; i++) {
 				ss1 += rold[i] * v[i];
@@ -193,7 +193,13 @@ int main(int argc, char** argv) {
 			aph = rh / ss1;
 
 			for (int j = 0; j < n; j++)s[j] = r[j] - aph * v[j];
-			if (norm(s, n) < tol) {
+			nor = 0;
+			for (int i = 0; i < n; i++) {
+				nor += s[i] * s[i];
+			}
+			nor = sqrt(nor);
+			
+			if (nor < tol) {
 				for (int j = 0; j < n; j++)x[j] = x[j] + aph*p[j];
 				break;
 			}
@@ -213,14 +219,16 @@ int main(int argc, char** argv) {
 			for (int j = 0; j < n; j++)r[j] = s[j] - omg * t[j];
 			
 			rhold = rh;
-			nr = norm(r, n);
+
+			nr = 0;
+			for (int i = 0; i < n; i++) {
+				nr += r[i] * r[i];
+			}
+			nr = sqrt(nr);
 			std::cout << "norm[r] = "<< nr << "\n";
 			if (nr < tol)break;
 		}
 
-
-
-	
 	}
 	//BROADCAST 
 	/*
