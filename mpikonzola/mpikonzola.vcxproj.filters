@@ -29,7 +29,7 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mpikonzola3_paralel.cpp">
+    <ClCompile Include="mpikonzola_pnew.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
